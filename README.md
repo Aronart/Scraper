@@ -7,6 +7,7 @@ This project scrapes Reddit posts using the URS Reddit scraping library (https:/
 1. Clone this repository:
 
     git clone https://github.com/Aronart/Scraper.git
+    
     cd Scraper
 
 2. Set your OPENAI_API_KEY in Scraper/.env:

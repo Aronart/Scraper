@@ -1,5 +1,5 @@
-.URS
-./.env
-.scrapes
-./.DS_Store
-.urs.log
+.URS/
+.env
+scrapes/
+.DS_Store
+urs.log

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import pandas as pd
 from openai import OpenAI
-import os
 from pathlib import Path
 from dotenv import load_dotenv
 

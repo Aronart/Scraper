@@ -40,3 +40,9 @@ df = pd.read_sql_query(QUERY, conn)
 # Save to CSV
 df.to_csv(OUTPUT_CSV, index=False, encoding='utf-8')
 print(f"[INFO] Exported {len(df)} rows to {OUTPUT_CSV}")
+
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', 0)
+pd.set_option('display.max_colwidth', None)
+
+print(df.head(20))

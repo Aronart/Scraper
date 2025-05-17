@@ -16,26 +16,12 @@ This project scrapes Reddit posts using the URS Reddit scraping library (https:/
 
     git clone --depth=1 https://github.com/JosephLai241/URS.git
 
-Note: URS's own guide recommends the following setup:
+Note: URS's own guide (https://josephlai241.github.io/URS/) recommends the following setup:
 
     cd URS
     poetry install
     poetry shell
     maturin develop --release
-
-However, this project calls URS via subprocess using a configured Python environment and doesn't require those steps unless you're running URS directly. In this setup, URS is invoked like this:
-
-    command = [
-        str(URS_VENV_PYTHON), '-m', 'urs.Urs',
-        '-r', subreddit,
-        's', keyword
-    ]
-    subprocess.run(
-        command,
-        cwd=URS_PATH,
-        input='y\n',
-        text=True
-    )
 
 4. Set up Reddit API credentials:
 
@@ -44,14 +30,14 @@ https://josephlai241.github.io/URS/credentials.html
 
 5. Install the required Python packages:
 
-    cd Scraper
+    cd ..
     pip install -r requirements.txt
 
 ## Usage
 
 Step 1 – Scrape Reddit data:
 
-    python scraper.py reddit --subreddits arbeitsleben dejobs --keywords Quereinstieg IT-Beratung
+    python scraper.py reddit --subreddits <subreddit> <subreddit> dejobs --keywords <keyword> <keyword>
 
 Step 2 – Export scraped data to CSV:
 

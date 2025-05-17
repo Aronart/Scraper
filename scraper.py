@@ -1,12 +1,12 @@
 import argparse
 import platform
 import subprocess
-import os
 import shutil
 import json
 import sqlite3
 from pathlib import Path
 from dotenv import load_dotenv
+import codecs
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 URS_PATH = SCRIPT_DIR / 'URS'
@@ -95,7 +95,6 @@ def run_reddit_scraper(subreddits, keywords):
                 '-r', subreddit,
                 's', keyword
             ]
-
             print(f"[INFO] Running Reddit scraper: {' '.join(command)}")
             subprocess.run(
                 command,
@@ -264,82 +263,6 @@ def insert_comments(json_path: Path, keywords):
 
             except Exception as e:
                 print(f"[ERROR] Failed to insert comment {comment['id']}: {e}")
-
-    with sqlite3.connect(DB_PATH) as conn, open(json_path, 'r', encoding='utf-8') as f:
-        json_data = json.load(f)
-        comments = json_data.get("data", {}).get("comments", [])
-        subreddit = json_data.get("data", {}).get("submission_metadata", {}).get("subreddit", "")
-
-        for comment in comments:
-            link_id = comment.get("link_id", "")  # e.g., 't3_abc123'
-            parent_id = comment.get("parent_id", "")
-            if not link_id.startswith("t3_"):
-                continue
-
-            # Only include top-level comments (i.e., those replying directly to the post)
-            if parent_id != link_id:
-                continue
-
-            parent_post_id = link_id[3:]  # Strip 't3_' prefix
-
-            try:
-                conn.execute('''
-                    INSERT OR IGNORE INTO reddit_comment (id, comment, author, created_utc, parent_post_id, subreddit)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                ''', (
-                    comment.get('id'),
-                    comment.get('body'),
-                    comment.get('author'),
-                    comment.get('created_utc'),
-                    parent_post_id,
-                    subreddit
-                ))
-
-                matched_keywords = [kw for kw in keywords if kw.lower() in comment.get('body', '').lower()]
-                for kw in matched_keywords:
-                    conn.execute('''
-                        INSERT OR IGNORE INTO reddit_comment_keywords (comment_id, keyword)
-                        VALUES (?, ?)
-                    ''', (comment.get('id'), kw))
-
-            except Exception as e:
-                print(f"[ERROR] Failed to insert comment {comment.get('id')}: {e}")
-
-    with sqlite3.connect(DB_PATH) as conn, open(json_path, 'r', encoding='utf-8') as f:
-        json_data = json.load(f)
-        comments = json_data.get("data", {}).get("comments", [])
-        metadata = json_data.get("data", {}).get("submission_metadata", {})
-        subreddit = metadata.get("subreddit", "")
-        submission_name = metadata.get("name", "")
-        parent_post_id = submission_name[3:] if submission_name.startswith("t3_") else None
-
-        for comment in comments:
-            if comment.get("parent_id") != submission_name:
-                continue  # Skip replies to comments
-
-            try:
-                conn.execute('''
-                    INSERT OR IGNORE INTO reddit_comment (id, comment, author, created_utc, parent_post_id, subreddit)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                ''', (
-                    comment.get('id'),
-                    comment.get('body'),
-                    comment.get('author'),
-                    comment.get('created_utc'),
-                    parent_post_id,
-                    subreddit
-                ))
-
-                matched_keywords = [kw for kw in keywords if kw.lower() in comment.get('body', '').lower()]
-                for kw in matched_keywords:
-                    conn.execute('''
-                        INSERT OR IGNORE INTO reddit_comment_keywords (comment_id, keyword)
-                        VALUES (?, ?)
-                    ''', (comment.get('id'), kw))
-
-            except Exception as e:
-                print(f"[ERROR] Failed to insert comment {comment.get('id')}: {e}")
-
 
 def main():
     parser = argparse.ArgumentParser(description="Multi-platform scraper CLI.")

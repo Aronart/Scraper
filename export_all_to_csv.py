@@ -8,29 +8,38 @@ OUTPUT_CSV = Path(__file__).resolve().parent / "db_output_all.csv"
 
 # SQL query (equivalent to the view)
 QUERY = """
-SELECT 
-    'post' AS source,
-    p.id AS id,
-    p.title AS title,
-    p.selftext AS content,
-    p.subreddit,
-    p.created_utc,
-    pk.keyword
-FROM reddit_post p
-LEFT JOIN reddit_post_keywords pk ON p.id = pk.post_id
+WITH unified AS (
+    SELECT 
+        'post' AS source,
+        p.id AS id,
+        p.title AS title,
+        p.selftext AS content,
+        p.subreddit AS subreddit,
+        p.created_utc AS created_utc,
+        GROUP_CONCAT(pk.keyword, ', ') AS keywords
+    FROM reddit_post p
+    LEFT JOIN reddit_post_keywords pk ON p.id = pk.post_id
+    GROUP BY p.id
 
-UNION ALL
+    UNION ALL
 
-SELECT 
-    'comment' AS source,
-    c.id AS id,
-    NULL AS title,
-    c.comment AS content,
-    c.subreddit,
-    c.created_utc,
-    ck.keyword
-FROM reddit_comment c
-LEFT JOIN reddit_comment_keywords ck ON c.id = ck.comment_id;
+    SELECT 
+        'comment' AS source,
+        c.id AS id,
+        NULL AS title,
+        c.comment AS content,
+        c.subreddit AS subreddit,
+        c.created_utc AS created_utc,
+        GROUP_CONCAT(ck.keyword, ', ') AS keywords
+    FROM reddit_comment c
+    LEFT JOIN reddit_comment_keywords ck ON c.id = ck.comment_id
+    GROUP BY c.id
+)
+
+SELECT * FROM unified
+WHERE content IS NOT NULL
+GROUP BY content
+ORDER BY created_utc DESC;
 """
 
 # Connect and query

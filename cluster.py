@@ -21,7 +21,7 @@ def is_low_effort(text: str) -> bool:
 
 def load_and_filter_texts(csv_path):
     df = pd.read_csv(csv_path, dtype=str)
-    text = df.iloc[:, 2].fillna("").tolist()
+    text = df.iloc[:, 3].fillna("").tolist()
     source = df.iloc[:, 0].fillna("").tolist()
 
     filtered = [
